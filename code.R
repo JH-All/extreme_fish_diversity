@@ -245,18 +245,35 @@ bg_df <- coef_df %>%
 label_df <- coef_df %>%
   distinct(term_id, term)
 
-pal <- brewer.pal(4, "Dark2")
-names(pal) <- levels(coef_df$model)
+framework_cols <- c(
+  "Island biogeography"      = "#9C6644",
+  "Environment"             = "#BC6C25",
+  "Environmental filtering" = "#DDA15E",
+  "Metacommunity"           = "#606C38",
+  "Thermal tolerance"       = "#283618"
+)
+
+pal <- framework_cols
 
 fig1_A <- ggplot(coef_df, aes(x = estimate, y = term_id, color = model)) +
   geom_rect(
     data = bg_df,
-    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = model),
+    aes(
+      xmin = xmin,
+      xmax = xmax,
+      ymin = ymin,
+      ymax = ymax,
+      fill = model
+    ),
     inherit.aes = FALSE,
     alpha = 0.18,
     color = NA
   ) +
-  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 0.8) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.8
+  ) +
   geom_errorbarh(
     aes(xmin = conf.low, xmax = conf.high),
     width = 0.18,
@@ -264,9 +281,13 @@ fig1_A <- ggplot(coef_df, aes(x = estimate, y = term_id, color = model)) +
     color = "black"
   ) +
   geom_errorbarh(
-    aes(xmin = conf.low, xmax = conf.high, color = model),
+    aes(
+      xmin = conf.low,
+      xmax = conf.high,
+      color = model
+    ),
     width = 0.12,
-    linewidth = 1.0
+    linewidth = 1
   ) +
   geom_point(
     aes(fill = model),
@@ -275,10 +296,18 @@ fig1_A <- ggplot(coef_df, aes(x = estimate, y = term_id, color = model)) +
     stroke = 1.1,
     color = "black"
   ) +
-  scale_y_discrete(labels = setNames(label_df$term, label_df$term_id)) +
-  scale_x_continuous(limits = c(-1.2, 1.2)) +
-  scale_color_manual(values = pal) +
-  scale_fill_manual(values = pal) +
+  scale_y_discrete(
+    labels = setNames(label_df$term, label_df$term_id)
+  ) +
+  scale_x_continuous(
+    limits = c(-1.2, 1.2)
+  ) +
+  scale_color_manual(
+    values = framework_cols
+  ) +
+  scale_fill_manual(
+    values = framework_cols
+  ) +
   theme_classic(base_size = 20) +
   labs(
     x = "Coefficient estimate (± 95% CI)",
@@ -287,13 +316,23 @@ fig1_A <- ggplot(coef_df, aes(x = estimate, y = term_id, color = model)) +
   ) +
   guides(
     fill = guide_legend(
-      override.aes = list(shape = 21, size = 4, color = "black")
+      override.aes = list(
+        shape = 21,
+        size = 4,
+        color = "black"
+      )
     ),
     color = "none"
   ) +
   theme(
-    legend.title = element_text(face = "bold", size = 16),
-    legend.text = element_text(face = "bold", size = 14),
+    legend.title = element_text(
+      face = "bold",
+      size = 16
+    ),
+    legend.text = element_text(
+      face = "bold",
+      size = 14
+    ),
     legend.position = "right",
     legend.justification = "top",
     legend.box.just = "top"
@@ -311,14 +350,14 @@ r2_df <- purrr::imap_dfr(model_list, ~{
   arrange(desc(R2)) %>%
   mutate(model = factor(model, levels = model))
 
-fig1_B <- ggplot(r2_df, aes(x = model, y = R2)) +
+fig1_B <- ggplot(r2_df, aes(x = model, y = R2, fill = model)) +
   geom_col(
     color = "black",
     width = 0.93,
     linewidth = 1,
-    alpha = 0.85,
-    fill = "lightgray"
+    alpha = 0.7
   ) +
+  scale_fill_manual(values = framework_cols) +
   coord_flip() +
   theme_classic(base_size = 20) +
   labs(x = NULL, y = expression(R^2)) +
@@ -345,13 +384,13 @@ aic_df <- purrr::imap_dfr(model_list, ~{
   arrange(delta_AIC) %>%
   mutate(model = factor(model, levels = model))
 
-fig1_C <- ggplot(aic_df, aes(x = model, y = delta_AIC)) +
+fig1_C <- ggplot(aic_df, aes(x = model, y = delta_AIC, fill = model)) +
   geom_col(
     color = "black",
     width = 0.93,
-    linewidth = 1,
-    fill = "lightgray"
+    linewidth = 1, alpha = 0.7
   ) +
+  scale_fill_manual(values = framework_cols) +
   coord_flip() +
   theme_classic(base_size = 20) +
   labs(x = NULL, y = expression(Delta*AIC)) +
@@ -544,18 +583,25 @@ bg_df_s <- coef_df_s %>%
 label_df_s <- coef_df_s %>%
   distinct(term_id, term)
 
-pal_s <- brewer.pal(4, "Dark2")
-names(pal_s) <- levels(coef_df_s$model)
-
 fig_s1_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
   geom_rect(
     data = bg_df_s,
-    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = model),
+    aes(
+      xmin = xmin,
+      xmax = xmax,
+      ymin = ymin,
+      ymax = ymax,
+      fill = model
+    ),
     inherit.aes = FALSE,
     alpha = 0.18,
     color = NA
   ) +
-  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 0.8) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.8
+  ) +
   geom_errorbarh(
     aes(xmin = conf.low, xmax = conf.high),
     width = 0.18,
@@ -563,9 +609,13 @@ fig_s1_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
     color = "black"
   ) +
   geom_errorbarh(
-    aes(xmin = conf.low, xmax = conf.high, color = model),
+    aes(
+      xmin = conf.low,
+      xmax = conf.high,
+      color = model
+    ),
     width = 0.12,
-    linewidth = 1.0
+    linewidth = 1
   ) +
   geom_point(
     aes(fill = model),
@@ -574,24 +624,49 @@ fig_s1_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
     stroke = 1.1,
     color = "black"
   ) +
-  scale_y_discrete(labels = setNames(label_df_s$term, label_df_s$term_id)) +
-  scale_x_continuous(limits = c(-1.2, 1.2)) +
-  scale_color_manual(values = pal_s) +
-  scale_fill_manual(values = pal_s) +
+  scale_y_discrete(
+    labels = setNames(label_df_s$term, label_df_s$term_id)
+  ) +
+  scale_x_continuous(
+    limits = c(-1.2, 1.2)
+  ) +
+  scale_color_manual(
+    values = framework_cols
+  ) +
+  scale_fill_manual(
+    values = framework_cols
+  ) +
   theme_classic(base_size = 20) +
   labs(
     x = "Coefficient estimate (± 95% CI)",
     y = NULL,
     fill = "Framework"
   ) +
-  guides(color = "none") +
+  guides(
+    fill = guide_legend(
+      override.aes = list(
+        shape = 21,
+        size = 4,
+        color = "black"
+      )
+    ),
+    color = "none"
+  ) +
   theme(
-    legend.title = element_text(face = "bold", size = 16),
-    legend.text = element_text(face = "bold", size = 14),
+    legend.title = element_text(
+      face = "bold",
+      size = 16
+    ),
+    legend.text = element_text(
+      face = "bold",
+      size = 14
+    ),
     legend.position = "right",
     legend.justification = "top",
     legend.box.just = "top"
   )
+
+fig_s1_A
 
 
 r2_df_s <- purrr::imap_dfr(model_list_s, ~{
@@ -603,12 +678,31 @@ r2_df_s <- purrr::imap_dfr(model_list_s, ~{
   arrange(desc(R2)) %>%
   mutate(model = factor(model, levels = model))
 
-fig_s1_B <- ggplot(r2_df_s, aes(x = model, y = R2)) +
-  geom_col(color = "black", width = 0.93, linewidth = 1, fill = "lightgray") +
+fig_s1_B <- ggplot(r2_df_s, aes(x = model, y = R2, fill = model)) +
+  geom_col(
+    color = "black",
+    width = 0.93,
+    linewidth = 1,
+    alpha = 0.7
+  ) +
+  scale_fill_manual(values = framework_cols) +
   coord_flip() +
   theme_classic(base_size = 20) +
-  labs(x = NULL, y = expression(R^2)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.50))
+  labs(
+    x = NULL,
+    y = expression(R^2)
+  ) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, 0.50),
+    breaks = seq(0, 0.50, by = 0.1)
+  ) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+fig_s1_B
 
 aic_df_s <- purrr::imap_dfr(model_list_s, ~{
   tibble(
@@ -620,12 +714,29 @@ aic_df_s <- purrr::imap_dfr(model_list_s, ~{
   arrange(delta_AIC) %>%
   mutate(model = factor(model, levels = model))
 
-fig_s1_C <- ggplot(aic_df_s, aes(x = model, y = delta_AIC)) +
-  geom_col(color = "black", width = 0.93, linewidth = 1, fill = "lightgray") +
+fig_s1_C <- ggplot(aic_df_s, aes(x = model, y = delta_AIC, fill = model)) +
+  geom_col(
+    color = "black",
+    width = 0.93,
+    linewidth = 1,
+    alpha = 0.7
+  ) +
+  scale_fill_manual(values = framework_cols) +
   coord_flip() +
   theme_classic(base_size = 20) +
-  labs(x = NULL, y = expression(Delta*AIC)) +
-  scale_y_continuous(expand = c(0, 0))
+  labs(
+    x = NULL,
+    y = expression(Delta*AIC)
+  ) +
+  scale_y_continuous(
+    expand = c(0, 0)
+  ) +
+  theme(
+    axis.title.x = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+fig_s1_C
 
 fig_s1 <- fig_s1_A + (fig_s1_B / fig_s1_C) +
   plot_annotation(tag_levels = "A")
@@ -798,9 +909,9 @@ coef_emp_df2 <- coef_emp_df %>%
   mutate(term = dplyr::recode(term, !!!coef_labels))
 
 term_order <- c(
-  "Trait similarity",
   "Aquatic dispersal",
-  "Terrestrial dispersal"
+  "Terrestrial dispersal",
+  "Trait similarity"
 )
 
 coef_null_df2$term <- factor(coef_null_df2$term, levels = term_order)
@@ -811,71 +922,86 @@ coef_null_df2$dummy <- " "
 coef_null_sum2$dummy <- " "
 coef_emp_df2$dummy <- " "
 
-figure_2 <- ggplot(coef_null_df2, aes(x = estimate, y = dummy)) +
-  geom_errorbarh(
-    data = coef_null_sum2,
-    aes(xmin = ci_low, xmax = ci_high, y = dummy),
-    width = 0.05,
-    linewidth = 2.4,
-    color = "black",
-    inherit.aes = FALSE
+coef_null_df2 <- coef_null_df2 %>%
+  mutate(framework = "Metacommunity")
+
+coef_null_sum2 <- coef_null_sum2 %>%
+  mutate(framework = "Metacommunity")
+
+coef_emp_df2 <- coef_emp_df2 %>%
+  mutate(framework = "Metacommunity")
+
+figure_2 <- ggplot(coef_null_df2, aes(x = estimate, y = term)) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dashed",
+    linewidth = 0.8,
+    color = "gray40"
   ) +
-  geom_errorbarh(
+  ggdist::stat_halfeye(
+    aes(fill = framework),
+    adjust = 0.7,
+    width = 0.65,
+    .width = 0,
+    justification = -0.15,
+    alpha = 0.35,
+    color = NA,
+    slab_color = NA,
+    point_colour = NA
+  ) +
+  geom_segment(
     data = coef_null_sum2,
-    aes(xmin = ci_low, xmax = ci_high, y = dummy),
-    width = 0.03,
-    linewidth = 1,
-    color = "gray40",
+    aes(
+      x = ci_low,
+      xend = ci_high,
+      y = term,
+      yend = term,
+      color = framework
+    ),
+    linewidth = 1.5,
     inherit.aes = FALSE
   ) +
   geom_point(
     data = coef_null_sum2,
-    aes(x = mean_est, y = dummy),
-    color = "grey20",
-    fill = "gray40",
+    aes(
+      x = mean_est,
+      y = term,
+      fill = framework
+    ),
     shape = 21,
-    size = 4.5,
-    stroke = 1.1,
+    size = 4,
+    color = "black",
     inherit.aes = FALSE
   ) +
-  geom_vline(
+  geom_point(
     data = coef_emp_df2,
-    aes(xintercept = estimate),
-    color = "darkred",
-    linetype = "dashed",
-    linewidth = 1,
-    alpha = 0.8
+    aes(
+      x = estimate,
+      y = term,
+      fill = framework
+    ),
+    shape = 23,
+    size = 3,
+    color = "black",
+    stroke = 1,
+    inherit.aes = FALSE
   ) +
-  ggdist::stat_halfeye(
-    adjust = 0.7,
-    width = 0.55,
-    .width = 0,
-    justification = -0.05,
-    alpha = 0.8,
-    point_colour = NA,
-    fill = "gray70",
-    color = "black"
-  ) +
-  facet_wrap(~ term, ncol = 3, scales = "fixed") +
-  scale_y_discrete(expand = expansion(mult = c(0.06, 0.08)))+
+  scale_fill_manual(values = framework_cols) +
+  scale_color_manual(values = framework_cols) +
   scale_x_continuous(limits = c(-0.5, 0.95)) +
-  theme_classic(base_size = 16) +
-  theme(
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
-    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
-    strip.background = element_rect(color = "black", fill = "white", linewidth = 1),
-    strip.text = element_text(size = 16),
-    panel.spacing = unit(0.6, "lines")
-  ) +
   labs(
     x = "Coefficient estimate",
     y = NULL
-  )
+  ) +
+  theme_classic(base_size = 15) +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
 
 figure_2
 
-ggsave("Figure_2.jpg", figure_2, width = 11, height = 4.8)
+ggsave("Figure_2.jpg", figure_2, width = 6, height = 4)
 
 # Interactions --------------------------------------------------
 m_int_1 <- glm(
@@ -900,6 +1026,7 @@ summary(m_int_1); r2(m_int_1)
 summary(m_int_2); r2(m_int_2)
 summary(m_int_3); r2(m_int_3)
 
+# Figure 3 -------------------------------------
 fig_int_A <- plot_model(
   m_int_1,
   type = "pred",
