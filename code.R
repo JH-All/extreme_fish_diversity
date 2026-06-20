@@ -394,7 +394,11 @@ fig1_C <- ggplot(aic_df, aes(x = model, y = delta_AIC, fill = model)) +
 fig1_C
 
 fig1 <- fig1_A + (fig1_B / fig1_C) +
-  plot_annotation(tag_levels = "A")
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "(",
+    tag_suffix = ")"
+  )
 
 fig1
 
@@ -803,7 +807,12 @@ fig_s3_C
 # Combine and save ----------------------------------------------
 
 fig_s3 <- fig_s3_A + (fig_s3_B / fig_s3_C) +
-  plot_annotation(tag_levels = "A")
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "(",
+    tag_suffix = ")"
+  )
+
 
 fig_s3
 
@@ -1187,7 +1196,12 @@ fig_int_C <- plot_model(
   )
 
 fig_3_new <- fig_int_A + fig_int_B + fig_int_C +
-  plot_annotation(tag_levels = "A")
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "(",
+    tag_suffix = ")"
+  )
+
 
 fig_3_new
 
