@@ -173,11 +173,9 @@ env_filt_scaled <- env_filt %>%
 # Models --------------------------------------------------------
 m1 <- glm.nb(S ~ stream_distance + Volume + Period, data = env_scaled)
 
-m2 <- glm.nb(S ~ Temp + DO + pH + Volume + Period, data = env_scaled)
+m2 <- glm.nb(S ~ Stress_index_1 + Stress_index_2 + Period, data = env_scaled)
 
-m3 <- glm.nb(S ~ Stress_index_1 + Stress_index_2 + Period, data = env_scaled)
-
-m4 <- glm(
+m3 <- glm(
   S ~ traits_similarity + aquatic_dispersal_capacity +
     terrestrial_dispersal_capacity + Period,
   data = env_filt_scaled,
@@ -187,14 +185,12 @@ m4 <- glm(
 summary(m1); r2(m1)
 summary(m2); r2(m2)
 summary(m3); r2(m3)
-summary(m4); r2(m4)
 
 # Figure 1A -----------------------------------------------------
 model_list <- list(
   "Island biogeography" = m1,
-  "Environment" = m2,
-  "Environmental filtering" = m3,
-  "Metacommunity" = m4
+  "Environmental filtering" = m2,
+  "Metacommunity" = m3
 )
 
 coef_df <- purrr::imap_dfr(model_list, ~{
@@ -211,9 +207,6 @@ coef_df <- coef_df %>%
     term = dplyr::recode(
       term,
       stream_distance = "Stream distance",
-      Temp = "Temperature",
-      DO = "Dissolved oxygen",
-      pH = "pH",
       Volume = "Volume",
       Stress_index_1 = "Stress index 1",
       Stress_index_2 = "Stress index 2",
@@ -247,10 +240,8 @@ label_df <- coef_df %>%
 
 framework_cols <- c(
   "Island biogeography"      = "#9C6644",
-  "Environment"             = "#BC6C25",
-  "Environmental filtering" = "#DDA15E",
-  "Metacommunity"           = "#606C38",
-  "Thermal tolerance"       = "#283618"
+  "Environmental filtering" = "#606C38", 
+  "Metacommunity"           = "#283618"
 )
 
 pal <- framework_cols
@@ -410,6 +401,10 @@ fig1
 ggsave("Figure_1.jpg", fig1, width = 15, height = 7.5)
 
 # Spatial autocorrelation ---------------------------------------
+# Geographic coordinates were converted to decimal degrees, 
+# and duplicate points were slightly jittered (±0.00001°) to prevent 
+# overlap while preserving spatial relationships
+
 env$coord <- data$coordinates
 
 dms_to_decimal <- function(x) {
@@ -478,67 +473,137 @@ env_spatial_filt_scaled <- env_spatial %>%
     )
   )
 
-m1_sp <- glm.nb(S ~ stream_distance + Volume, data = env_spatial_scaled)
-m2_sp <- glm.nb(S ~ Temp + DO + pH + Volume, data = env_spatial_scaled)
-m3_sp <- glm.nb(S ~ Stress_index_1 + Stress_index_2, data = env_spatial_scaled)
+m1_sp <- glm.nb(
+  S ~ stream_distance + Volume + Period,
+  data = env_spatial_scaled
+)
 
-m4_sp <- glm(
-  S ~ traits_similarity + aquatic_dispersal_capacity +
-    terrestrial_dispersal_capacity,
+m2_sp <- glm.nb(
+  S ~ Stress_index_1 + Stress_index_2 + Period,
+  data = env_spatial_scaled
+)
+
+m3_sp <- glm(
+  S ~ traits_similarity +
+    aquatic_dispersal_capacity +
+    terrestrial_dispersal_capacity +
+    Period,
   data = env_spatial_filt_scaled,
   family = poisson(link = "log")
 )
 
-moran_residuals <- function(mod, dat, k = 4) {
-  dat2 <- dat %>% filter(is.finite(lon_jit), is.finite(lat_jit))
+moran_residuals <- function(mod, dat, k) {
+  
+  dat2 <- dat %>%
+    filter(
+      is.finite(lon_jit),
+      is.finite(lat_jit)
+    )
+  
   r <- residuals(mod, type = "pearson")
   
-  coords <- as.matrix(dat2[, c("lon_jit", "lat_jit")])
-  nb <- knn2nb(knearneigh(coords, k = k))
-  lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
-  mi <- moran.test(r, lw, zero.policy = TRUE)
+  coords <- as.matrix(
+    dat2[, c("lon_jit", "lat_jit")]
+  )
+  
+  nb <- knn2nb(
+    knearneigh(coords, k = k)
+  )
+  
+  lw <- nb2listw(
+    nb,
+    style = "W",
+    zero.policy = TRUE
+  )
+  
+  mi <- moran.test(
+    r,
+    lw,
+    zero.policy = TRUE
+  )
   
   tibble(
-    Moran_I = unname(mi$estimate[["Moran I statistic"]]),
+    k = k,
+    Moran_I = unname(
+      mi$estimate[["Moran I statistic"]]
+    ),
     p_value = mi$p.value,
     n = length(r)
   )
 }
 
 model_list_spatial <- list(
-  "Island biogeography" = list(model = m1_sp, data = env_spatial_scaled),
-  "Environment" = list(model = m2_sp, data = env_spatial_scaled),
-  "Environmental filtering" = list(model = m3_sp, data = env_spatial_scaled),
-  "Metacommunity" = list(model = m4_sp, data = env_spatial_filt_scaled)
+  "Island biogeography" = list(
+    model = m1_sp,
+    data = env_spatial_scaled
+  ),
+  
+  "Environmental filtering" = list(
+    model = m2_sp,
+    data = env_spatial_scaled
+  ),
+  
+  "Metacommunity" = list(
+    model = m3_sp,
+    data = env_spatial_filt_scaled
+  )
 )
 
-spatial_tests <- purrr::imap_dfr(model_list_spatial, function(x, model_name) {
-  moran_residuals(
-    mod = x$model,
-    dat = x$data,
-    k = 4
-  ) %>%
-    mutate(Model = model_name, .before = 1)
-})
+k_values <- c(4, 7, 12, 15)
+
+spatial_tests <- purrr::imap_dfr(
+  model_list_spatial,
+  function(x, model_name) {
+    
+    purrr::map_dfr(
+      k_values,
+      ~ moran_residuals(
+        mod = x$model,
+        dat = x$data,
+        k = .x
+      )
+    ) %>%
+      mutate(
+        Model = model_name,
+        .before = 1
+      )
+  }
+)
+
+spatial_tests
 
 spatial_tests %>% arrange(p_value)
 
-# Figure S1 -----------------------------------------------------
-m1_s <- glm.nb(S ~ stream_distance + Volume, data = env_filt_scaled)
-m2_s <- glm.nb(S ~ Temp + DO + pH + Volume, data = env_filt_scaled)
-m3_s <- glm.nb(S ~ Stress_index_1 + Stress_index_2, data = env_filt_scaled)
+range(spatial_tests$Moran_I)
+range(spatial_tests$p_value)
+
+# Figure S3 -----------------------------------------------------
+m1_s <- glm.nb(
+  S ~ stream_distance + Volume,
+  data = env_filt_scaled
+)
+
+m2_s <- glm.nb(
+  S ~ Stress_index_1 + Stress_index_2,
+  data = env_filt_scaled
+)
+
+m3_s <- glm(
+  S ~ traits_similarity + aquatic_dispersal_capacity +
+    terrestrial_dispersal_capacity,
+  data = env_filt_scaled,
+  family = poisson(link = "log")
+)
 
 model_list_s <- list(
   "Island biogeography" = m1_s,
-  "Environment" = m2_s,
-  "Environmental filtering" = m3_s,
-  "Metacommunity" = m4
+  "Environmental filtering" = m2_s,
+  "Metacommunity" = m3_s
 )
 
 coef_df_s <- purrr::imap_dfr(model_list_s, ~{
   broom::tidy(.x, conf.int = TRUE) %>%
-    filter(term != "(Intercept)",
-           term != "PeriodWet Period") %>%
+    filter(term != "(Intercept)") %>%
     mutate(model = .y)
 })
 
@@ -549,9 +614,6 @@ coef_df_s <- coef_df_s %>%
     term = dplyr::recode(
       term,
       stream_distance = "Stream distance",
-      Temp = "Temperature",
-      DO = "Dissolved oxygen",
-      pH = "pH",
       Volume = "Volume",
       Stress_index_1 = "Stress index 1",
       Stress_index_2 = "Stress index 2",
@@ -583,7 +645,7 @@ bg_df_s <- coef_df_s %>%
 label_df_s <- coef_df_s %>%
   distinct(term_id, term)
 
-fig_s1_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
+fig_s3_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
   geom_rect(
     data = bg_df_s,
     aes(
@@ -653,22 +715,17 @@ fig_s1_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
     color = "none"
   ) +
   theme(
-    legend.title = element_text(
-      face = "bold",
-      size = 16
-    ),
-    legend.text = element_text(
-      face = "bold",
-      size = 14
-    ),
+    legend.title = element_text(face = "bold", size = 16),
+    legend.text = element_text(face = "bold", size = 14),
     legend.position = "right",
     legend.justification = "top",
     legend.box.just = "top"
   )
 
-fig_s1_A
+fig_s3_A
 
 
+# Figure S3B ----------------------------------------------------
 r2_df_s <- purrr::imap_dfr(model_list_s, ~{
   tibble(
     model = .y,
@@ -678,7 +735,7 @@ r2_df_s <- purrr::imap_dfr(model_list_s, ~{
   arrange(desc(R2)) %>%
   mutate(model = factor(model, levels = model))
 
-fig_s1_B <- ggplot(r2_df_s, aes(x = model, y = R2, fill = model)) +
+fig_s3_B <- ggplot(r2_df_s, aes(x = model, y = R2, fill = model)) +
   geom_col(
     color = "black",
     width = 0.93,
@@ -702,7 +759,10 @@ fig_s1_B <- ggplot(r2_df_s, aes(x = model, y = R2, fill = model)) +
     legend.position = "none"
   )
 
-fig_s1_B
+fig_s3_B
+
+
+# Figure S3C ----------------------------------------------------
 
 aic_df_s <- purrr::imap_dfr(model_list_s, ~{
   tibble(
@@ -714,7 +774,7 @@ aic_df_s <- purrr::imap_dfr(model_list_s, ~{
   arrange(delta_AIC) %>%
   mutate(model = factor(model, levels = model))
 
-fig_s1_C <- ggplot(aic_df_s, aes(x = model, y = delta_AIC, fill = model)) +
+fig_s3_C <- ggplot(aic_df_s, aes(x = model, y = delta_AIC, fill = model)) +
   geom_col(
     color = "black",
     width = 0.93,
@@ -729,21 +789,30 @@ fig_s1_C <- ggplot(aic_df_s, aes(x = model, y = delta_AIC, fill = model)) +
     y = expression(Delta*AIC)
   ) +
   scale_y_continuous(
-    expand = c(0, 0)
+    expand = c(0, 0),
+    limits = c(0,20)
   ) +
   theme(
     axis.title.x = element_text(face = "bold"),
     legend.position = "none"
   )
 
-fig_s1_C
+fig_s3_C
 
-fig_s1 <- fig_s1_A + (fig_s1_B / fig_s1_C) +
+
+# Combine and save ----------------------------------------------
+
+fig_s3 <- fig_s3_A + (fig_s3_B / fig_s3_C) +
   plot_annotation(tag_levels = "A")
 
-fig_s1
+fig_s3
 
-ggsave("Figure_S1.jpg", fig_s1, width = 15, height = 7.5)
+ggsave(
+  "Figure_S3.jpg",
+  fig_s3,
+  width = 15,
+  height = 7.5
+)
 
 # Null models: only metacommunity -------------------------------
 only_scale <- function(x) scale(x)[, 1]
@@ -878,7 +947,7 @@ coef_null_sum <- coef_null_df %>%
     .groups = "drop"
   )
 
-coef_emp_df <- broom::tidy(m4) %>%
+coef_emp_df <- broom::tidy(m3) %>%
   filter(term != "(Intercept)",
          term != "PeriodWet Period") %>%
   mutate(model = "Metacommunity")
