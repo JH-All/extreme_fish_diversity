@@ -1105,7 +1105,7 @@ summary(m_int_2); r2(m_int_2)
 summary(m_int_3); r2(m_int_3)
 
 # Figure 3 -------------------------------------
-fig_int_A <- plot_model(
+fig_int_C <- plot_model(
   m_int_1,
   type = "pred",
   terms = c("traits_similarity", "stream_distance")
@@ -1165,7 +1165,7 @@ fig_int_B <- plot_model(
     legend.key = element_blank()
   )
 
-fig_int_C <- plot_model(
+fig_int_A <- plot_model(
   m_int_2,
   type = "pred",
   terms = c("traits_similarity", "aquatic_dispersal_capacity")
