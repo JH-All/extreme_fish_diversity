@@ -240,7 +240,7 @@ label_df <- coef_df %>%
 
 framework_cols <- c(
   "Island biogeography"      = "#9C6644",
-  "Environmental filtering" = "#606C38", 
+  "Environmental filtering" = "#DDA15E", 
   "Metacommunity"           = "#283618"
 )
 
