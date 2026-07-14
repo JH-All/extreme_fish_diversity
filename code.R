@@ -74,8 +74,8 @@ data$maximum_depth_cm <- as.numeric(data$maximum_depth_cm)
 data$depth_m <- data$maximum_depth_cm / 100
 
 env$Volume <- (2/3) * pi *
-  data$maximum_length_m *
-  data$maximum_width_m *
+  (data$maximum_length_m/2) *
+  (data$maximum_width_m/2) *
   data$depth_m
 
 env <- env %>%
@@ -265,18 +265,23 @@ fig1_A <- ggplot(coef_df, aes(x = estimate, y = term_id, color = model)) +
     linetype = "dashed",
     linewidth = 0.8
   ) +
-  geom_errorbarh(
-    aes(xmin = conf.low, xmax = conf.high),
+  geom_errorbar(
+    aes(
+      xmin = conf.low,
+      xmax = conf.high
+    ),
+    orientation = "y",
     width = 0.18,
     linewidth = 1.6,
     color = "black"
   ) +
-  geom_errorbarh(
+  geom_errorbar(
     aes(
       xmin = conf.low,
       xmax = conf.high,
       color = model
     ),
+    orientation = "y",
     width = 0.12,
     linewidth = 1
   ) +
@@ -668,18 +673,23 @@ fig_s3_A <- ggplot(coef_df_s, aes(x = estimate, y = term_id, color = model)) +
     linetype = "dashed",
     linewidth = 0.8
   ) +
-  geom_errorbarh(
-    aes(xmin = conf.low, xmax = conf.high),
+  geom_errorbar(
+    aes(
+      xmin = conf.low,
+      xmax = conf.high
+    ),
+    orientation = "y",
     width = 0.18,
     linewidth = 1.6,
     color = "black"
   ) +
-  geom_errorbarh(
+  geom_errorbar(
     aes(
       xmin = conf.low,
       xmax = conf.high,
       color = model
     ),
+    orientation = "y",
     width = 0.12,
     linewidth = 1
   ) +
