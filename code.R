@@ -369,46 +369,6 @@ fig1_B <- ggplot(r2_df, aes(x = model, y = R2, fill = model)) +
 
 fig1_B
 
-# Figure 1C -----------------------------------------------------
-aic_df <- purrr::imap_dfr(model_list, ~{
-  tibble(
-    model = .y,
-    AIC = AIC(.x)
-  )
-}) %>%
-  mutate(delta_AIC = AIC - min(AIC)) %>%
-  arrange(delta_AIC) %>%
-  mutate(model = factor(model, levels = model))
-
-fig1_C <- ggplot(aic_df, aes(x = model, y = delta_AIC, fill = model)) +
-  geom_col(
-    color = "black",
-    width = 0.93,
-    linewidth = 1, alpha = 0.7
-  ) +
-  scale_fill_manual(values = framework_cols) +
-  coord_flip() +
-  theme_classic(base_size = 20) +
-  labs(x = NULL, y = expression(Delta*AIC)) +
-  theme(
-    axis.title.x = element_text(face = "bold"),
-    legend.position = "none"
-  ) +
-  scale_y_continuous(expand = c(0, 0))
-
-fig1_C
-
-fig1 <- fig1_A + (fig1_B / fig1_C) +
-  plot_annotation(
-    tag_levels = "a",
-    tag_prefix = "(",
-    tag_suffix = ")"
-  )
-
-fig1
-
-ggsave("Figure_1.jpg", fig1, width = 15, height = 7.5)
-
 # Spatial autocorrelation ---------------------------------------
 # Geographic coordinates were converted to decimal degrees, 
 # and duplicate points were slightly jittered (±0.00001°) to prevent 
@@ -832,6 +792,19 @@ ggsave(
   width = 15,
   height = 7.5
 )
+
+# Figure 1 Complete ------------------------
+fig1 <- fig1_A + (fig1_B / fig_s3_C) +
+  plot_annotation(
+    tag_levels = "a",
+    tag_prefix = "(",
+    tag_suffix = ")"
+  )
+
+fig1
+
+ggsave("Figure_1.jpg", fig1, width = 15, height = 7.5)
+
 
 # Null models: only metacommunity -------------------------------
 only_scale <- function(x) scale(x)[, 1]
