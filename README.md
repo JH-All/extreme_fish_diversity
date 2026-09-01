@@ -1,4 +1,4 @@
-# Manuscript in progress: Extreme environments rewrite the rules of freshwater fish community assembly
+# Extreme environments rewrite the rules of freshwater fish community assembly
 
 This is a repository with the data analysis codes of the developed work, aiming better reproducibility.
 
