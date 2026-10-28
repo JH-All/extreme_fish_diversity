@@ -1189,3 +1189,30 @@ fig_3_new <- fig_int_A + fig_int_B + fig_int_C +
 fig_3_new
 
 ggsave("Figure_3.jpg", fig_3_new, width = 13, height = 5)
+
+# Trait similarity ~ Stress index 1 + Stress index 2  -------
+dados_similaridade <- env %>%
+  filter(S > 1) %>%
+  dplyr::select(
+    traits_similarity,
+    Stress_index_1,
+    Stress_index_2,
+  ) %>%
+  filter(if_all(everything(), ~ is.finite(.x))) %>%
+  mutate(
+    across(
+      c(Stress_index_1, Stress_index_2),
+      ~ as.numeric(scale(.x))
+    )
+  )
+
+
+modelo_similaridade <- lm(
+  traits_similarity ~ Stress_index_1 + Stress_index_2,
+  data = dados_similaridade
+)
+
+performance::check_collinearity(modelo_similaridade)
+
+summary(modelo_similaridade)
+confint(modelo_similaridade)
